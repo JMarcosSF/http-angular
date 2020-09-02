@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
-import {Post} from "./post.model";
+import {map} from "rxjs/operators";
 
 @Component({
   selector: 'app-root',
@@ -9,8 +8,7 @@ import {Post} from "./post.model";
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  loadedPosts: Post[] = [];
-  isFetching: boolean = false;
+  loadedPosts = [];
 
   constructor(private http: HttpClient) {}
 
@@ -18,14 +16,13 @@ export class AppComponent implements OnInit {
     this.fetchPosts();
   }
 
-  onCreatePost(postData: Post) {
+  onCreatePost(postData: { title: string; content: string }) {
     // Send Http request
     this.http
-      .post<{ name: string }>(
+      .post(
         'https://ng-course-recipe-book-ac604.firebaseio.com/posts.json',
         postData
-      )
-      .subscribe(responseData => {
+      ).subscribe(responseData => {
         console.log(responseData);
       });
   }
@@ -35,27 +32,23 @@ export class AppComponent implements OnInit {
     this.fetchPosts();
   }
 
-  onClearPosts() {
-    // Send Http request
+  private fetchPosts() {
+    this.http.get('https://ng-course-recipe-book-ac604.firebaseio.com/posts.json')
+      .pipe(map(resp => {
+        const postsArray = [];
+        for(const key in resp) {
+          if(resp.hasOwnProperty(key)) {
+            postsArray.push({...resp[key], id: key});
+          }
+        }
+        return postsArray;
+      }))
+      .subscribe(resp => {
+        console.log(resp);
+      })
   }
 
-  private fetchPosts() {
-    this.isFetching = true;
-    this.http
-      .get<{[key: string]: Post}>('https://ng-course-recipe-book-ac604.firebaseio.com/posts.json')
-        .pipe(
-        map(responseData => {
-          const postsArray: Post[] = [];
-          for (const key in responseData) {
-            if (responseData.hasOwnProperty(key)) {
-              postsArray.push({ ...responseData[key], id: key });
-            }
-          }
-          return postsArray;
-        })
-      ).subscribe(posts => {
-        this.isFetching = false;
-        this.loadedPosts = posts;
-      });
+  onClearPosts() {
+    // Send Http request
   }
 }
