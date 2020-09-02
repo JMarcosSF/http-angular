@@ -55,6 +55,7 @@ export class PostsService {
     return this.http.delete('https://ng-course-recipe-book-ac604.firebaseio.com/posts.json',
       {
         observe: 'events',
+        // responseType: 'text'
       }).pipe(tap(event => {
         console.log(event);
         if(event.type === HttpEventType.Response) {
